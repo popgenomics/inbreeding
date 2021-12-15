@@ -2,8 +2,8 @@
 ## produces a table in a dos format.
 __dos format__: AA=0; Aa=1; aa=2; one line per individual; one column per SNP
 ```
-fasta2dos time python3 fasta2dos.py mytilus_renamed.fas > mytilus.dos 
-fasta2dos time python3 fasta2dos.py test.fas > test.dos 
+time python3 fasta2dos.py mytilus_renamed.fas > mytilus.dos 
+time python3 fasta2dos.py test.fas > test.dos 
 ```
 
 The table .dos can be used by the library __hierfstat__ in __R__.  
