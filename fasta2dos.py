@@ -19,39 +19,40 @@ def get_SNPs(seq, populations, all_loci, loci_length, missing_data):
 	# loop over loci
 	for locus_tmp in range(len(all_loci)):
 		locus_i = all_loci[locus_tmp]
-		L_i = loci_length[locus_tmp]
-	
-		# loop over genomic positions
-		list_of_SNPs = []
-		alleles_1 = []
-		alleles_2 = []
-		for pos_tmp in range(L_i):
-			list_of_alleles = []
-			
-			# loop over populations
-			for pop_tmp in populations:
-				# loop over individuals
-				for ind_tmp in seq[locus_i][pop_tmp]:
-					# loop over alleles
-					for allele_tmp in seq[locus_i][pop_tmp][ind_tmp]:
-
-#						seq['Contig69']['Emys_orbicularis']['GA03C']['Allele_1'][60]
-						allele = seq[locus_i][pop_tmp][ind_tmp][allele_tmp][pos_tmp]
-						if allele not in missing_data:
-							list_of_alleles.append(allele)
+		if len(seq[locus_i])==len(populations):
+			L_i = loci_length[locus_tmp]
+		
+			# loop over genomic positions
+			list_of_SNPs = []
+			alleles_1 = []
+			alleles_2 = []
+			for pos_tmp in range(L_i):
+				list_of_alleles = []
 				
-			alleles = list(set(list_of_alleles))
-			nAlleles = len(alleles)
-			# only works on biallelic positions
-			if nAlleles==2:
-				list_of_SNPs.append(pos_tmp)
-				alleles_1.append(alleles[0])
-				alleles_2.append(alleles[1])
-		if len(list_of_SNPs)>0:
-			res[locus_i]={}
-			res[locus_i]['SNPs']=list_of_SNPs
-			res[locus_i]['Allele_1']=alleles_1
-			res[locus_i]['Allele_2']=alleles_2
+				# loop over populations
+				for pop_tmp in populations:
+					# loop over individuals
+					for ind_tmp in seq[locus_i][pop_tmp]:
+						# loop over alleles
+						for allele_tmp in seq[locus_i][pop_tmp][ind_tmp]:
+
+	#						seq['Contig69']['Emys_orbicularis']['GA03C']['Allele_1'][60]
+							allele = seq[locus_i][pop_tmp][ind_tmp][allele_tmp][pos_tmp]
+							if allele not in missing_data:
+								list_of_alleles.append(allele)
+						
+				alleles = list(set(list_of_alleles))
+				nAlleles = len(alleles)
+				# only works on biallelic positions
+				if nAlleles==2:
+					list_of_SNPs.append(pos_tmp)
+					alleles_1.append(alleles[0])
+					alleles_2.append(alleles[1])
+			if len(list_of_SNPs)>0:
+				res[locus_i]={}
+				res[locus_i]['SNPs']=list_of_SNPs
+				res[locus_i]['allele_1']=alleles_1
+				res[locus_i]['allele_2']=alleles_2
 	return(res)
 
 
@@ -66,7 +67,11 @@ for seq_tmp in infile:
 	locus = seq_tmp.id.split('|')[0]
 	population = seq_tmp.id.split('|')[1]
 	ind = seq_tmp.id.split('|')[2]
-	allele = seq_tmp.id.split('|')[3]
+	allele = seq_tmp.id.split('|')[3].lower()
+	if allele=="allele1":
+		allele="allele_1"
+	if allele=="allele2":
+		allele="allele_2"
 	
 	if locus not in seq:
 		seq[locus] = {}
@@ -85,7 +90,7 @@ for seq_tmp in infile:
 	
 	if ind not in all_individuals[population]:
 		all_individuals[population].append(ind)
-	seq[locus][population][ind][allele] = seq_tmp.seq
+	seq[locus][population][ind][allele] = seq_tmp.seq.upper()
 
 SNPs = get_SNPs(seq=seq, populations=all_populations, all_loci=all_loci, loci_length=loci_length, missing_data=missing_data)
 
@@ -103,8 +108,8 @@ for pop_tmp in all_populations:
 		for locus_tmp in SNPs.keys():
 			for pos_tmp in range(len(SNPs[locus_tmp]['SNPs'])):
 				pos_i = SNPs[locus_tmp]['SNPs'][pos_tmp]
-				allele1 = seq[locus_tmp][pop_tmp][ind_tmp]['Allele_1'][pos_i]
-				allele2 = seq[locus_tmp][pop_tmp][ind_tmp]['Allele_2'][pos_i]
+				allele1 = seq[locus_tmp][pop_tmp][ind_tmp]['allele_1'][pos_i]
+				allele2 = seq[locus_tmp][pop_tmp][ind_tmp]['allele_2'][pos_i]
 #				print("{0}/{1}".format(allele1, allele2))	
 				# if no N
 				if allele1 in missing_data or allele2 in missing_data:
@@ -112,7 +117,7 @@ for pop_tmp in all_populations:
 				else:
 					# if homozygote
 					if allele1==allele2:
-						if allele1==SNPs[locus_tmp]['Allele_1'][pos_tmp]:
+						if allele1==SNPs[locus_tmp]['allele_1'][pos_tmp]:
 							genotype = 0
 						else:
 							genotype = 2
